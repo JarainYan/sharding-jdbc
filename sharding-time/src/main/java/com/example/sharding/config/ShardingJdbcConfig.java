@@ -4,6 +4,7 @@ import com.alibaba.druid.pool.DruidDataSource;
 import org.apache.shardingsphere.api.config.sharding.KeyGeneratorConfiguration;
 import org.apache.shardingsphere.api.config.sharding.ShardingRuleConfiguration;
 import org.apache.shardingsphere.api.config.sharding.TableRuleConfiguration;
+import org.apache.shardingsphere.api.config.sharding.strategy.ComplexShardingStrategyConfiguration;
 import org.apache.shardingsphere.api.config.sharding.strategy.InlineShardingStrategyConfiguration;
 import org.apache.shardingsphere.api.config.sharding.strategy.StandardShardingStrategyConfiguration;
 import org.apache.shardingsphere.shardingjdbc.api.ShardingDataSourceFactory;
@@ -64,12 +65,21 @@ public class ShardingJdbcConfig {
         result.setKeyGeneratorConfig(getUserKeyGeneratorConfiguration());
         return result;
     }
+    // 定义m_order表的分片策略
+    TableRuleConfiguration getMOrderTableRuleConfiguration() {
+        TableRuleConfiguration result = new TableRuleConfiguration("m_order","m1.m_order_202101,m1.m_order_202102,m1.m_order_202103");
+        result.setTableShardingStrategyConfig(new
+                ComplexShardingStrategyConfiguration("user_id,seller_id,create_time", new MyDBComplexKeysShardingAlgorithm()));
+        result.setKeyGeneratorConfig(getUserKeyGeneratorConfiguration());
+        return result;
+    }
     // 定义sharding‐Jdbc数据源
     @Bean
     DataSource getShardingDataSource() throws SQLException {
         ShardingRuleConfiguration shardingRuleConfig = new ShardingRuleConfiguration();
         shardingRuleConfig.getTableRuleConfigs().add(getOrderTableRuleConfiguration());
         shardingRuleConfig.getTableRuleConfigs().add(getUserTableRuleConfiguration());
+        shardingRuleConfig.getTableRuleConfigs().add(getMOrderTableRuleConfiguration());
 //spring.shardingsphere.props.sql.show = true
         // 打印SQL
         Properties properties = new Properties();
